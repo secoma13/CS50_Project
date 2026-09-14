@@ -1,3 +1,4 @@
 # A simulation engine for the double pendulum
 #### Video Demo:  <URL HERE>
 ### Description: 
+The project is a simulator of the double pendulum. The double pendulum is a physical system that consists fo two pendulums, one hanging from the ceiling, and the other one hanging from the first one. The equations of motion of the system can be written explicitly (see the [Wikipedia article](https://en.wikipedia.org/wiki/Double_pendulum)), but they have to be solved numerically. The system is interesting because it is one of the easiest examples of a **caotic physical system**, that is, a system such that small variations of the initial conditions produce very different movements within some time. The objective of this program is to run a simulator that displays this behaviour by means of a nice animation.
