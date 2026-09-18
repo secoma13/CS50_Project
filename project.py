@@ -131,7 +131,7 @@ def main():
     # theta1, theta2, theta1_dot, theta2_dot = get_init_cond()
 
     # BORRAR DESPUÉS
-    theta1 = 60; theta2 = -30; theta1_dot = 20; theta2_dot = 0 
+    theta1 = 60; theta2 = -30; theta1_dot = 5; theta2_dot = -2 
 
     # Perturbed pendulum (we will modify the initial of each pendulum position by 0.05 degrees)
     # We keep the initial velocities the same
