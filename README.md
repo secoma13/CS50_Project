@@ -5,4 +5,13 @@ The project is a simulator of the double pendulum. The double pendulum is a phys
 
 The main function first calls some functions to get from the user the initial conditions and the characteristics of the sytem. These are all stored in variables. We then modify the angle of the pendulums for a second double pendulum (we randomly decide whether the modification acts clockwise or counter-clockwise).
 
-We then use the solve_ivp from the scipy module to solve the differentila equation of the double pendulum for each of the double pendulums we have created. To do so, we use the function ode_fun, that contains the equation. It is prepared to take as an input a vector y, whose components are $y=[\theta_1, \theta_2, \dot{\theta}_1, \dot{HE}]$
+We then use the solve_ivp from the scipy module to solve the differentila equation of the double pendulum for each of the double pendulums we have created. To do so, we use the function ode_fun, that contains the equation. It is prepared to take as an input a vector, whose components are $[\theta_1, \theta_2, \dot{\theta}_1, \dot{\theta}_2]$. The function then sets $y[0]=\theta_1$, $y[1]=\theta_2$, $y[2]=\dot{\theta}_1$. $y[3]=\dot{\theta}_2$, and outputs a vector $\dot{\mathbf{y}} = f(\mathbf{y})$ (that fucntion is the differential equation, which can be consluted in the Wikipedia link above).
+
+solve_ivp then produces an array sol such that sol.t contains the discrete time points at which it has calculated the angles and velocities, and sol.y[0, i] and sol.y[1, i] contains the angles $\theta_1$ and $\theta_2$ at time i.
+
+The, an empty figure is created, and immediatly afterwards, to subfigures. The first one will contain the animation, and the second one will plot in real time the kinetic and potential energy of the first of the double pendulums (the one whose initial conditions where introduced by the user). The objective of this plot is to show that the total mechanical energy is contant (as it should for a system under a conservative force field). 
+
+For the first plot, we set two set of data to plot. In fact, both of them are empty, and will be updated when we create the animation. For the animation, we use the PillowWriter class from the matplotlib.animation module. We run a loop over the discrete time stamps at which we have the angles of the pendulums, and we transform the spherical coordinates back to cartesian coordinates using the coord_transf function. Once we have standard cartesian coordinates, we update the data. Observe that we have two plots with the same data (one of them includes the origin). This is done so that one plot plots the rods, and the other one the masses. Each loop saves a frame of what should be displayed at the moment.
+
+All the frames are saved and added to a gif file.
+ 
