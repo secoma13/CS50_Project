@@ -3,42 +3,8 @@ import matplotlib.pyplot as plt
 from matplotlib.animation import PillowWriter
 import math
 from scipy.integrate import solve_ivp
+import random as rd
 
-class Pendulum:
-    def __init__(self, m : float, l : float, theta : float, speed : float):
-        self.mass = m
-        self.length = l
-        self.angle = theta
-        self.speed = speed
-
-    def __str__(self):
-        print("This is a pendulum whose mass is {self.mass} kg, and whose length is {slef.length} m.")
-
-    # We define mass as a property to ensure that it is a positive float
-    @property
-    def mass(self):
-        return self._mass
-
-    @mass.setter
-    def mass(self, m):
-        if m <= 0:
-            raise ValueError("Length should be a positive number")
-        else:
-            self._mass = m
-
-    # We do the same fot the length
-    @property
-    def length(self):
-        return self._length
-
-    @length.setter
-    def length(self, l):
-        if l <= 0:
-            raise ValueError("Length should be a positive number")
-        else:
-            self._length = l
-
-        
 def get_mass_lengths():
     """
     Gets the masses and lengths of the pendulum. Index one refers to the pendulum that hangs from the ceiling, and index two to the one hanging from the first one.
@@ -124,22 +90,37 @@ def main():
     # BORRAR DESPUÉS
     theta1 = 60; theta2 = -30; theta1_dot = 20; theta2_dot = 0 
 
-    # Create the pendulums
-    p1 = Pendulum(m1, l1, radians(theta1), radians(theta1_dot))
-    p2 = Pendulum(m2, l2, radians(theta2), radians(theta2_dot))
+    # Perturbed pendulum (we will modify the initial of each pendulum position by 0.05 degrees)
+    # We keep the initial velocities the same
+    epsilon = radians(0.05)
+    rd_list = [-1, 1]
+
+    theta1_p2 = theta1 + rd.choice(rd_list)*epsilon
+    theta2_p2 = theta2 + rd.choice(rd_list)*epsilon
+    
 
     # Solve the IVP (Initial Value Problem)
     # sol is an object. sol.t is the time points at which we get the solutions and sol.y are the solutions (it is an np.array)
     # y0 is the angle of the first pendulum, y1 of the second, and y2 and y3 are theire respective velocites.
     # For the plot only the positions matter
-    sol = solve_ivp(fun = ode_fun, t_span = (0, 30), t_eval = np.linspace(0, 30, 3000), y0 = [theta1, theta2, theta1_dot, theta2_dot], args = (m1, m2, l1, l2))
+
+    sol1 = solve_ivp(fun = ode_fun, t_span = (0, 30), t_eval = np.linspace(0, 30, 3000), y0 = [theta1, theta2, theta1_dot, theta2_dot], args = (m1, m2, l1, l2))
+
+    sol2 = solve_ivp(fun = ode_fun, t_span = (0, 30), t_eval = np.linspace(0, 30, 3000), y0 = [theta1_p2, theta2_p2, theta1_dot, theta2_dot], args = (m1, m2, l1, l2))
 
     # Plot the solution
     # We fix a coordinate system where (0,0) is the point where the rope l1 touches the ceiling
     # We create the figures. We plot both the animation displaying both pendulums and the evolution of the kinetic and potential energies over time
     fig = plt.figure()
-    l, = plt.plot([], [], color = "black", linestyle = "-")
-    ll,  = plt.plot([], [], "blue", marker = 'o')
+
+    # Pendulum1
+    pendulum1_rod, = plt.plot([], [], color = "black", linestyle = "-")
+    pendumulum1_mass,  = plt.plot([], [], "blue", marker = 'o')
+
+    # Pendulum 2
+    pendulum2_rod, = plt.plot([], [], color = "orange", linestyle = "-")
+    pendulum2_mass, = plt.plot([], [], color = "orange", marker = "o") 
+
 
     # We set the axis (we add the 1.5 to see both pendulums at every point)
     l12 = l1 + l2 + 1.5
@@ -153,10 +134,18 @@ def main():
     # Explicar que hace esta sintaxis
     with writer.saving(fig, "DoublePendulum.gif", 75):
         for i in range(700):
-            x1_t, y1_t, x2_t, y2_t = coordinate_transf(l1, l2, sol.y[0, i], sol.y[1, i])
-            l.set_data([0, x1_t, x2_t], [0, y1_t, y2_t])
-            ll.set_data([x1_t, x2_t], [y1_t, y2_t])
+            x1_t, y1_t, x2_t, y2_t = coordinate_transf(l1, l2, sol1.y[0, i], sol1.y[1, i])
+            x1_t_p2, y1_t_p2, x2_t_p2, y2_t_p2 = coordinate_transf(l1, l2, sol2.y[0, i], sol2.y[1, i])
 
+            # Set first pendulum
+            pendulum1_rod.set_data([0, x1_t, x2_t], [0, y1_t, y2_t])
+            pendumulum1_mass.set_data([x1_t, x2_t], [y1_t, y2_t])
+
+            # Set second pendulum
+            pendulum2_rod.set_data([0, x1_t_p2, x2_t_p2], [0, y1_t_p2, y2_t_p2])
+            pendulum2_mass.set_data([x1_t_p2, x2_t_p2], [y1_t_p2, y2_t_p2])
+
+            # We get the frame
             writer.grab_frame()
 
 
