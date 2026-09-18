@@ -76,6 +76,49 @@ def coordinate_transf(l1 : float, l2 : float, theta1 : float, theta2 : float):
     return (x1, y1, x1 + l2*math.cos(theta2), y1 - l2*math.sin(theta2))
 
 
+def kin_en(theta1 : float, theta2 : float, theta1_dot : float, theta2_dot : float, l1 : float, l2 : float, m1 : float, m2 : float) -> float:
+    """
+    Calculates the kinetic energy of a pendulum
+
+    Parameters
+    ----------
+    theta1, theta2: float
+        Angles of the pendulums
+    theta1_dot, theta2_dot: float
+        Angular velocities of the pendulums
+    l1, l2: float
+        lengths of the rods
+    m1, m2: float
+        masses of the pendulums
+    
+    Return
+    --------
+    float:
+        Kinetic energy of the system
+    
+    """
+    return 1/2*(m1*(l1*theta1_dot)**2 + m2*((l1*theta1_dot)**2 + (l2*theta2_dot)**2 + 2*l1*l2*math.cos(theta1-theta2)))
+
+
+def pot_en(h : float, m : float) -> float:
+    """
+    Calculates the potential energy of a pendulum
+
+    Parameters
+    ----------
+    h: float
+        height of the pendulum
+    m: float
+        mass of the pendulum
+
+    Returns
+    --------
+        float
+            Potential energy of ONE pendulum
+    """
+    return m*h*9.8
+
+
 def main():
 
     # Input of the system
@@ -97,7 +140,6 @@ def main():
 
     theta1_p2 = theta1 + rd.choice(rd_list)*epsilon
     theta2_p2 = theta2 + rd.choice(rd_list)*epsilon
-    
 
     # Solve the IVP (Initial Value Problem)
     # sol is an object. sol.t is the time points at which we get the solutions and sol.y are the solutions (it is an np.array)
@@ -112,15 +154,23 @@ def main():
     # We fix a coordinate system where (0,0) is the point where the rope l1 touches the ceiling
     # We create the figures. We plot both the animation displaying both pendulums and the evolution of the kinetic and potential energies over time
     fig = plt.figure()
+    fig.suptitle("Double Pendulum")
+    pends, energ = fig.subfigures(1, 2)
+    pends.suptitle("Simulated movement")
+    energ.suptitle("Energy distribution")
 
+    # Data to plot the pendulums
     # Pendulum1
-    pendulum1_rod, = plt.plot([], [], color = "black", linestyle = "-")
-    pendumulum1_mass,  = plt.plot([], [], "blue", marker = 'o')
+    pendulum1_rod, = pends.plot([], [], color = "black", linestyle = "-")
+    pendumulum1_mass, = pends.plot([], [], "blue", marker = 'o')
 
     # Pendulum 2
-    pendulum2_rod, = plt.plot([], [], color = "orange", linestyle = "-")
-    pendulum2_mass, = plt.plot([], [], color = "orange", marker = "o") 
+    pendulum2_rod, = pends.plot([], [], color = "orange", linestyle = "-")
+    pendulum2_mass, = pends.plot([], [], color = "orange", marker = "o") 
 
+    # Data to plot the energy
+    categ = ["Kinetic", "Potential"]
+    energ_plot = energ.bar(categories, [], color = ["red", "green"])
 
     # We set the axis (we add the 1.5 to see both pendulums at every point)
     l12 = l1 + l2 + 1.5
@@ -131,7 +181,7 @@ def main():
     metadata = dict(title = "Double Pendulum", artist = "Sergio Martín Nieto")
     writer = PillowWriter(fps = 20, metadata = metadata)
 
-    # Explicar que hace esta sintaxis
+    # The with writer.saving is similar to the synthax we use to open/close files
     with writer.saving(fig, "DoublePendulum.gif", 75):
         for i in range(700):
             x1_t, y1_t, x2_t, y2_t = coordinate_transf(l1, l2, sol1.y[0, i], sol1.y[1, i])
@@ -139,14 +189,19 @@ def main():
 
             # Set first pendulum
             pendulum1_rod.set_data([0, x1_t, x2_t], [0, y1_t, y2_t])
-            pendumulum1_mass.set_data([x1_t, x2_t], [y1_t, y2_t])
+            pendulum1_mass.set_data([x1_t, x2_t], [y1_t, y2_t])
 
             # Set second pendulum
             pendulum2_rod.set_data([0, x1_t_p2, x2_t_p2], [0, y1_t_p2, y2_t_p2])
             pendulum2_mass.set_data([x1_t_p2, x2_t_p2], [y1_t_p2, y2_t_p2])
 
+            # Set data for the energies
+            K = kin_en()
+            V = pot_en(y1_t, m1) + pot_en(y2_t, m2)
+            energ_plot.set_data(categ, [K, V])
+
             # We get the frame
-            writer.grab_frame()
+            writer.grab_frame(sol1.y[0, i], sol2.y[0, i], sol1.y[1, i], sol2.y[1, i], l1, l2, m1, m2)
 
 
 if __name__ == "__main__":
