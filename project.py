@@ -125,13 +125,17 @@ def main():
     # m1, m2, l1, l2 = get_mass_lengths()
 
     # BORRAR DESPUÉS
-    m1 = 2; m2 = 10; l1 = 2; l2 = 1
+    m1 = 2; m2 = 3; l1 = 2; l2 = 1
 
     # Initial conditions
     # theta1, theta2, theta1_dot, theta2_dot = get_init_cond()
 
     # BORRAR DESPUÉS
-    theta1 = 45; theta2 = -15; theta1_dot = 5; theta2_dot = -5 
+    theta1 = 15; theta2 = 25; theta1_dot = 15; theta2_dot = -2
+    theta1 = radians(theta1)
+    theta2 = radians(theta2)
+    theta1_dot = radians(theta1_dot)
+    theta2_dot = radians(theta2_dot)
 
     # Perturbed pendulum (we will modify the initial of each pendulum position by 0.05 degrees)
     # We keep the initial velocities the same
@@ -146,9 +150,9 @@ def main():
     # y0 is the angle of the first pendulum, y1 of the second, and y2 and y3 are theire respective velocites.
     # For the plot only the positions matter
 
-    sol1 = solve_ivp(fun = ode_fun, t_span = (0, 15), t_eval = np.linspace(0, 15, 2500), y0 = [theta1, theta2, theta1_dot, theta2_dot], args = (m1, m2, l1, l2))
+    sol1 = solve_ivp(fun = ode_fun, t_span = (0, 15), t_eval = np.linspace(0, 15, 360), y0 = [theta1, theta2, theta1_dot, theta2_dot], args = (m1, m2, l1, l2))
 
-    sol2 = solve_ivp(fun = ode_fun, t_span = (0, 15), t_eval = np.linspace(0, 15, 2500), y0 = [theta1_p2, theta2_p2, theta1_dot, theta2_dot], args = (m1, m2, l1, l2))
+    sol2 = solve_ivp(fun = ode_fun, t_span = (0, 15), t_eval = np.linspace(0, 15, 360), y0 = [theta1_p2, theta2_p2, theta1_dot, theta2_dot], args = (m1, m2, l1, l2))
 
     # Plot the solution
     # We fix a coordinate system where (0,0) is the point where the rope l1 touches the ceiling
@@ -186,11 +190,11 @@ def main():
 
     # We create the animation
     metadata = dict(title = "Double Pendulum", artist = "Sergio Martín Nieto")
-    writer = PillowWriter(fps = 30, metadata = metadata)
+    writer = PillowWriter(fps = 24, metadata = metadata)
 
     # The with writer.saving is similar to the synthax we use to open/close files
     with writer.saving(fig, "DoublePendulum.gif", 75):
-        for i in range(2500):
+        for i in range(360):
             x1_t, y1_t, x2_t, y2_t = coordinate_transf(l1, l2, sol1.y[0, i], sol1.y[1, i])
             x1_t_p2, y1_t_p2, x2_t_p2, y2_t_p2 = coordinate_transf(l1, l2, sol2.y[0, i], sol2.y[1, i])
 
