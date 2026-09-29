@@ -14,10 +14,10 @@ def get_mass_lengths():
     """
 
     print("Introduce the date required to describe the system.")
-    m1 : float = input("Mass of the first pendulum in kgs: ")
-    m2 : float = input("Mass of the second pendulum in kgs: ")
-    l1 : float = input("Length of the rope between the ceiling and the first pendulum in meters: ")
-    l2 : float = input("Length of the rope between the pendulum in meters: ")
+    m1 : float = float(input("Mass of the first pendulum in kgs: "))
+    m2 : float = float(input("Mass of the second pendulum in kgs: "))
+    l1 : float = float(input("Length of the rope between the ceiling and the first pendulum in meters: "))
+    l2 : float = float(input("Length of the rope between the pendulum in meters: "))
 
     return (m1, m2, l1, l2)
 
@@ -29,29 +29,29 @@ def get_init_cond():
     :rtype: tuple
     """
 
-    print("Intorduce the initial conditions for the pendulum. \n Recall that these are given by two angles (that are expected in degrees)")
-    theta1 : float = input("Introduce the angle of the first pendulum: ")
-    theta2 : float = input("Introduce the angle of the second pendulum: ")
-    theta1_dot : float = input("Introduce the initial speed of the first pendulum (degrees per second): ")
-    theta2_dot : float = input("Introduce the initial speed of the second pendulum (degrees per second): ")
+    print("Intorduce the initial conditions for the pendulum. \nRecall that these are given by two angles (that are expected in degrees)")
+    theta1 : float = float(input("Introduce the angle of the first pendulum: "))
+    theta2 : float = float(input("Introduce the angle of the second pendulum: "))
+    theta1_dot : float = float(input("Introduce the initial speed of the first pendulum (degrees per second): "))
+    theta2_dot : float = float(input("Introduce the initial speed of the second pendulum (degrees per second): "))
     return theta1, theta2, theta1_dot, theta2_dot
 
 def ode_fun(t, y, m1, m2, l1, l2):
     g = 9.8
 
     # ODE
-    denom = l1*(2*m1 + m2*(1 - math.cos(2*(y[0]-y[1]))))
+    denom = 2*m1 + m2*(1 - math.cos(2*(y[0]-y[1])))
 
-    dot_y2 = 1/denom*(-g*((2*m1 + m2)*math.sin(y[0]) - m2*math.sin(y[0]-2*y[1])) - 2*m2*math.sin(y[0] - y[1])*((y[3]**2)*l2 + (y[2]**2)*l1*math.cos(y[0] - y[1])))
-    dot_y3 = 1/denom*(2*math.sin(y[0] - y[1])*((y[2]**2)*l1*(m1 + m2) + g*(m1 + m2)*math.cos(y[0]) + (y[3]**2)*l2*m2*math.cos(y[0] - y[1])))
+    dot_y2 = 1/(l1*denom)*(-g*((2*m1 + m2)*math.sin(y[0]) + m2*math.sin(y[0]-2*y[1])) - 2*m2*math.sin(y[0] - y[1])*((y[3]**2)*l2 + (y[2]**2)*l1*math.cos(y[0] - y[1])))
+    dot_y3 = 1/(l2*denom)*(2*math.sin(y[0] - y[1])*((y[2]**2)*l1*(m1 + m2) + g*(m1 + m2)*math.cos(y[0]) + (y[3]**2)*l2*m2*math.cos(y[0] - y[1])))
 
     return [y[2], y[3], dot_y2, dot_y3]
 
-def radians(theta :  float) -> float:
+def radians(theta : float) -> float:
     """
     Converts an angle in degrees to radians 
     """
-    return theta*2*math.pi/180
+    return theta*math.pi/180
 
 def coordinate_transf(l1 : float, l2 : float, theta1 : float, theta2 : float):
     """
@@ -97,7 +97,7 @@ def kin_en(theta1 : float, theta2 : float, theta1_dot : float, theta2_dot : floa
         Kinetic energy of the system
     
     """
-    return 1/2*((m1 + m2)*(l1*theta1_dot)**2 + m2*(l2*theta2_dot)**2) + m2*l1*l2*theta1_dot*theta2_dot*math.cos(theta1-theta2)
+    return 0.5*((m1 + m2)*(l1*theta1_dot)**2 + m2*(l2*theta2_dot)**2) + m2*l1*l2*theta1_dot*theta2_dot*math.cos(theta1-theta2)
 
 
 def pot_en(h : float, m : float) -> float:
@@ -114,7 +114,7 @@ def pot_en(h : float, m : float) -> float:
     Returns
     --------
         float
-            Potential energy of ONE pendulum
+            Potential energy of ONE mass at height h
     """
     return m*h*9.8
 
@@ -122,16 +122,13 @@ def pot_en(h : float, m : float) -> float:
 def main():
 
     # Input of the system
-    # m1, m2, l1, l2 = get_mass_lengths()
-
-    # BORRAR DESPUÉS
-    m1 = 2; m2 = 3; l1 = 2; l2 = 1
+    m1, m2, l1, l2 = get_mass_lengths()
 
     # Initial conditions
-    # theta1, theta2, theta1_dot, theta2_dot = get_init_cond()
+    theta1, theta2, theta1_dot, theta2_dot = get_init_cond()
+    print(theta1)
 
-    # BORRAR DESPUÉS
-    theta1 = 15; theta2 = 25; theta1_dot = 15; theta2_dot = -2
+    # Transform angles and ang. velocities to radians 
     theta1 = radians(theta1)
     theta2 = radians(theta2)
     theta1_dot = radians(theta1_dot)
@@ -139,7 +136,7 @@ def main():
 
     # Perturbed pendulum (we will modify the initial of each pendulum position by 0.05 degrees)
     # We keep the initial velocities the same
-    epsilon = radians(0.005)
+    epsilon = radians(0.5)
     rd_list = [-1, 1]
 
     theta1_p2 = theta1 + rd.choice(rd_list)*epsilon
@@ -150,9 +147,9 @@ def main():
     # y0 is the angle of the first pendulum, y1 of the second, and y2 and y3 are theire respective velocites.
     # For the plot only the positions matter
 
-    sol1 = solve_ivp(fun = ode_fun, t_span = (0, 15), t_eval = np.linspace(0, 15, 360), y0 = [theta1, theta2, theta1_dot, theta2_dot], args = (m1, m2, l1, l2))
+    sol1 = solve_ivp(fun = ode_fun, t_span = (0, 50), t_eval = np.linspace(0, 50, 1200), y0 = [theta1, theta2, theta1_dot, theta2_dot], args = (m1, m2, l1, l2))
 
-    sol2 = solve_ivp(fun = ode_fun, t_span = (0, 15), t_eval = np.linspace(0, 15, 360), y0 = [theta1_p2, theta2_p2, theta1_dot, theta2_dot], args = (m1, m2, l1, l2))
+    sol2 = solve_ivp(fun = ode_fun, t_span = (0, 50), t_eval = np.linspace(0, 50, 1200), y0 = [theta1_p2, theta2_p2, theta1_dot, theta2_dot], args = (m1, m2, l1, l2))
 
     # Plot the solution
     # We fix a coordinate system where (0,0) is the point where the rope l1 touches the ceiling
@@ -194,7 +191,7 @@ def main():
 
     # The with writer.saving is similar to the synthax we use to open/close files
     with writer.saving(fig, "DoublePendulum.gif", 75):
-        for i in range(360):
+        for i in range(1200):
             x1_t, y1_t, x2_t, y2_t = coordinate_transf(l1, l2, sol1.y[0, i], sol1.y[1, i])
             x1_t_p2, y1_t_p2, x2_t_p2, y2_t_p2 = coordinate_transf(l1, l2, sol2.y[0, i], sol2.y[1, i])
 
